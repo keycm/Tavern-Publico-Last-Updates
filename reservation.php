@@ -46,20 +46,189 @@ mysqli_close($link);
     <link rel="stylesheet" href="CSS/admin.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        .sort-by-status label {
-            margin-right: 5px;
+        /* --- ENHANCED & RESPONSIVE UI STYLING --- */
+
+        /* Headers, Search and Filters */
+        .reservation-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid #eaedf1;
         }
-        .sort-by-status select {
-            padding: 8px 15px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .search-input {
+            padding: 12px 20px;
+            border: 1px solid #d1d5db;
+            border-radius: 25px;
+            width: 320px;
+            max-width: 100%;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background-color: #f8f9fa;
+        }
+
+        .search-input:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
             background-color: #fff;
+        }
+
+        .sort-by-status label {
+            font-weight: 600;
+            color: #444;
+            font-size: 14px;
+            margin-right: 8px;
+        }
+
+        .sort-by-status select {
+            padding: 10px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 20px;
+            background-color: #f8f9fa;
             font-size: 14px;
             cursor: pointer;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
-        /* Style for the new comments textarea in modal */
-        .form-group.full-width {
-            grid-column: 1 / -1;
+        .sort-by-status select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+            background-color: #fff;
+        }
+
+        /* Table & Responsive Wrapper */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid #eaedf1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px; /* Forces scroll on small devices */
+        }
+
+        table th, table td {
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid #eaedf1;
+            vertical-align: middle;
+        }
+
+        table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        table tbody tr { transition: background-color 0.2s; }
+        table tbody tr:hover { background-color: #fcfdfd; }
+
+        /* Customer Info Display */
+        .customer-info { display: flex; align-items: center; gap: 12px; }
+        .customer-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid #eee; }
+        .customer-info strong { color: #333; font-size: 14px; }
+        .customer-info small { color: #777; font-size: 13px; }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            text-align: center;
+        }
+        .status-badge.confirmed { background-color: #d1e7dd; color: #0f5132; }
+        .status-badge.pending { background-color: #fff3cd; color: #856404; }
+        .status-badge.cancelled { background-color: #f8d7da; color: #842029; }
+        .status-badge.declined { background-color: #e2e3e5; color: #41464b; }
+
+        /* Action Buttons */
+        .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn { border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;}
+        .btn i { font-size: 18px; margin-right: 6px; }
+        .btn-small { padding: 6px 12px; font-size: 13px; }
+        .btn-small i { font-size: 16px; margin-right: 4px; }
+        
+        .btn-primary { background-color: #28a745; color: white; box-shadow: 0 4px 6px rgba(40,167,69,0.2); }
+        .btn-primary:hover { background-color: #218838; transform: translateY(-1px); }
+
+        .view-edit-btn { background-color: #e0f2fe; color: #0284c7; }
+        .view-edit-btn:hover { background-color: #bae6fd; }
+        
+        .delete-btn { background-color: #fee2e2; color: #991b1b; }
+        .delete-btn:hover { background-color: #fecaca; }
+
+        /* Modals Formatting */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; padding: 15px; }
+        .modal-content { background-color: #fff; border-radius: 12px; width: 100%; max-width: 600px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; max-height: 90vh; }
+        
+        .modal-header { padding: 20px 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background-color: #fafbfc; }
+        .modal-header h2 { margin: 0; font-size: 18px; color: #2c3e50; font-weight: 700; }
+        .modal-body { padding: 25px; overflow-y: auto; }
+        .modal-actions { padding: 20px 25px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; background-color: #fafbfc; }
+        
+        .close-button { font-size: 24px; color: #999; cursor: pointer; background: none; border: none; padding: 0; line-height: 1; transition: color 0.2s; }
+        .close-button:hover { color: #333; }
+
+        /* Form Inputs (Grid Layout for Modals) */
+        #editReservationForm, #addReservationForm { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { margin-bottom: 0; }
+        .form-group.full-width { grid-column: 1 / -1; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #444; font-size: 13px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-family: inherit; font-size: 14px; box-sizing: border-box; transition: border-color 0.2s; background: #fdfdfd; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #007bff; outline: none; box-shadow: 0 0 0 3px rgba(0,123,255,0.1); background: #fff;}
+        .form-group input[readonly] { background-color: #e9ecef; cursor: not-allowed; color: #666; }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+
+        /* Image Display in Modal */
+        #validIdDisplay img { max-width: 100%; border-radius: 8px; border: 1px solid #eee; margin-top: 10px; }
+
+        /* Pagination Styles */
+        .pagination-container { display: flex; justify-content: center; align-items: center; margin-top: 25px; padding: 10px 0; gap: 8px; flex-wrap: wrap; }
+        #pageNumbers { display: flex; gap: 6px; flex-wrap: wrap; }
+        .page-number { padding: 8px 14px; border: 1px solid #dee2e6; border-radius: 6px; cursor: pointer; transition: all 0.2s; background-color: #fff; color: #495057; font-weight: 500; font-size: 14px; }
+        .page-number:hover { background-color: #e9ecef; color: #212529; }
+        .page-number.active { background-color: #007bff; color: white; border-color: #007bff; font-weight: 600; }
+        .pagination-container .btn:disabled { background-color: #f8f9fa; color: #adb5bd; border: 1px solid #dee2e6; cursor: not-allowed; }
+
+        /* --- RESPONSIVE MEDIA QUERIES --- */
+        @media screen and (max-width: 768px) {
+            .reservation-page-header { flex-direction: column; align-items: stretch; }
+            .header-controls { flex-direction: column; align-items: stretch; width: 100%; }
+            .search-input { width: 100%; }
+            .sort-by-status { flex-direction: column; align-items: flex-start; }
+            .sort-by-status select { width: 100%; }
+            #addReservationBtn { width: 100%; }
+            
+            #editReservationForm, #addReservationForm { grid-template-columns: 1fr; }
+            .actions { flex-direction: column; }
+            .btn.btn-small { width: 100%; justify-content: flex-start; }
         }
     </style>
 </head>
@@ -70,10 +239,8 @@ mysqli_close($link);
         <?php
         // Conditionally include the sidebar based on the user's role
         if (isset($_SESSION['role']) && $_SESSION['role'] === 'manager') {
-            // For managers, include the specific manager sidebar
             include 'partials/manager_sidebar.php';
         } else {
-            // For owners/admins, display the full admin sidebar
         ?>
             <aside class="admin-sidebar">
                 <div class="sidebar-header">
@@ -105,7 +272,6 @@ mysqli_close($link);
                     <h1 class="header-page-title">All Reservations</h1>
                     
                     <div class="admin-header-right">
-    
                         <div class="admin-notification-area">
                             <div class="admin-notification-item">
                                 <button class="admin-notification-button" id="adminMessageBtn" title="Messages">
@@ -148,18 +314,20 @@ mysqli_close($link);
 
             <main class="dashboard-main-content">
                 <div class="reservation-page-header">
-                    <input type="text" id="reservationSearch" class="search-input" placeholder="Search reservations...">
-                    <div class="sort-by-status" style="display: flex; align-items: center; gap: 10px;">
-                        <label for="statusSort" style="font-weight: 500; color: #555;">Sort by Status:</label>
-                        <select id="statusSort" class="form-control" style="padding: 8px 15px; border: 1px solid #ddd; border-radius: 20px; background-color: #fff; font-size: 14px; cursor: pointer;">
-                            <option value="all">All Statuses</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Confirmed">Confirmed</option>
-                            <option value="Cancelled">Cancelled</option>
-                            <option value="Declined">Declined</option>
-                        </select>
+                    <div class="header-controls">
+                        <input type="text" id="reservationSearch" class="search-input" placeholder="Search customer, email, etc...">
+                        <div class="sort-by-status">
+                            <label for="statusSort">Status:</label>
+                            <select id="statusSort" class="form-control">
+                                <option value="all">All</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Confirmed">Confirmed</option>
+                                <option value="Cancelled">Cancelled</option>
+                                <option value="Declined">Declined</option>
+                            </select>
+                        </div>
                     </div>
-                    <button id="addReservationBtn" class="btn btn-primary" style="background-color: #28a745;">Add New Reservation</button>
+                    <button id="addReservationBtn" class="btn btn-primary"><i class="material-icons">add_circle</i> Add Reservation</button>
                 </div>
 
                 <section class="all-reservations-section">
@@ -179,12 +347,11 @@ mysqli_close($link);
                             </thead>
                             <tbody>
                                 <?php if (empty($allReservations)): ?>
-                                    <tr><td colspan="8" style="text-align: center;">No reservations found.</td></tr>
+                                    <tr><td colspan="8" style="text-align: center; color: #777;">No reservations found.</td></tr>
                                 <?php else: ?>
                                     <?php foreach ($allReservations as $reservation): ?>
                                         <?php
                                             $statusClass = strtolower($reservation['status']);
-                                            // --- MODIFICATION: Added 'special_requests' ---
                                             $fullReservationData = [
                                                 'reservation_id' => $reservation['reservation_id'], 'user_id' => $reservation['user_id'] ?? 'N/A',
                                                 'res_date' => $reservation['res_date'], 'res_time' => $reservation['res_time'],
@@ -194,7 +361,7 @@ mysqli_close($link);
                                                 'reservation_type' => $reservation['reservation_type'],
                                                 'valid_id_path' => $reservation['valid_id_path'],
                                                 'applied_coupon_code' => $reservation['applied_coupon_code'] ?? null,
-                                                'special_requests' => $reservation['special_requests'] ?? null, // ADDED
+                                                'special_requests' => $reservation['special_requests'] ?? null,
                                                 'action_by' => $reservation['action_by'] ?? null 
                                             ];
                                             $fullReservationJson = htmlspecialchars(json_encode($fullReservationData), ENT_QUOTES, 'UTF-8');
@@ -222,15 +389,18 @@ mysqli_close($link);
                                                 }
                                                 ?>
                                             </td>
-                                            <td><?php echo htmlspecialchars($reservation['res_date']); ?><br><small><?php echo htmlspecialchars(date('g:i A', strtotime($reservation['res_time']))); ?></small></td>
-                                            <td><?php echo htmlspecialchars($reservation['num_guests']); ?></td>
-                                            <td><?php echo htmlspecialchars($reservation['reservation_type']); ?></td>
+                                            <td>
+                                                <span style="font-weight: 500; color: #333;"><?php echo htmlspecialchars(date('M d, Y', strtotime($reservation['res_date']))); ?></span><br>
+                                                <small style="color: #666;"><i class="material-icons" style="font-size: 12px; vertical-align: text-bottom;">access_time</i> <?php echo htmlspecialchars(date('g:i A', strtotime($reservation['res_time']))); ?></small>
+                                            </td>
+                                            <td style="font-weight: 600; text-align: center;"><?php echo htmlspecialchars($reservation['num_guests']); ?></td>
+                                            <td style="color: #555;"><?php echo htmlspecialchars($reservation['reservation_type']); ?></td>
                                             <td><span class="status-badge <?php echo $statusClass; ?>"><?php echo htmlspecialchars($reservation['status']); ?></span></td>
-                                            <td><?php echo htmlspecialchars(date('Y-m-d H:i', strtotime($reservation['created_at']))); ?></td>
-                                            <td><?php echo htmlspecialchars($reservation['action_by'] ?? 'N/A'); ?></td>
+                                            <td style="color: #666; font-size: 13px;"><?php echo htmlspecialchars(date('M d, Y H:i', strtotime($reservation['created_at']))); ?></td>
+                                            <td style="color: #555;"><?php echo htmlspecialchars($reservation['action_by'] ?? 'N/A'); ?></td>
                                             <td class="actions">
-                                                <button class="btn btn-small view-edit-btn">View/Edit</button>
-                                                <button class="btn btn-small delete-btn">Delete</button>
+                                                <button class="btn btn-small view-edit-btn"><i class="material-icons">edit</i> Edit</button>
+                                                <button class="btn btn-small delete-btn"><i class="material-icons">delete</i> Delete</button>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -239,7 +409,7 @@ mysqli_close($link);
                         </table>
                     </div>
                     <div class="pagination-container">
-                        <button class="btn" id="prevPageBtn" disabled>&laquo; Previous</button>
+                        <button class="btn" id="prevPageBtn" disabled>&laquo; Prev</button>
                         <div id="pageNumbers"></div>
                         <button class="btn" id="nextPageBtn">Next &raquo;</button>
                     </div>
@@ -249,19 +419,26 @@ mysqli_close($link);
             <div id="reservationModal" class="modal">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2 id="modal-title-h2">Reservation Details & Edit</h2>
-                        <span class="close-button">&times;</span>
+                        <h2 id="modal-title-h2">Reservation Details</h2>
+                        <button class="close-button">&times;</button>
                     </div>
                     <div class="modal-body">
                         <form id="editReservationForm">
                             <input type="hidden" id="modalReservationId" name="reservation_id">
+                            <div class="form-group full-width" style="border-bottom: 2px solid #f1f3f5; padding-bottom: 10px; margin-bottom: 10px;">
+                                <h3 style="margin:0; font-size: 16px; color: #0284c7;">Customer Details</h3>
+                            </div>
                             <div class="form-group"><label for="modalResName">Customer Name:</label><input type="text" id="modalResName" name="res_name" required></div>
-                            <div class="form-group"><label for="modalResEmail">Email:</label><input type="email" id="modalResEmail" name="res_email" required></div>
-                            <div class="form-group"><label for="modalResPhone">Phone:</label><input type="tel" id="modalResPhone" name="res_phone"></div>
+                            <div class="form-group"><label for="modalResEmail">Email Address:</label><input type="email" id="modalResEmail" name="res_email" required></div>
+                            <div class="form-group"><label for="modalResPhone">Phone Number:</label><input type="tel" id="modalResPhone" name="res_phone"></div>
+                            
+                            <div class="form-group full-width" style="border-bottom: 2px solid #f1f3f5; padding-bottom: 10px; margin-top: 10px; margin-bottom: 10px;">
+                                <h3 style="margin:0; font-size: 16px; color: #0284c7;">Booking Info</h3>
+                            </div>
                             <div class="form-group"><label for="modalResDate">Date:</label><input type="date" id="modalResDate" name="res_date" required></div>
                             <div class="form-group"><label for="modalResTime">Time:</label><input type="time" id="modalResTime" name="res_time" required></div>
                             <div class="form-group"><label for="modalNumGuests">Number of Guests:</label><input type="number" id="modalNumGuests" name="num_guests" min="1" required></div>
-                             <div class="form-group">
+                            <div class="form-group">
                                 <label for="modalReservationType">Reservation Type:</label>
                                 <select id="modalReservationType" name="reservation_type">
                                     <option value="Dine-in">Dine-in</option>
@@ -269,31 +446,33 @@ mysqli_close($link);
                                     <option value="Special Occasion">Special Occasion</option>
                                 </select>
                             </div>
-                            <div class="form-group"><label for="modalStatus">Status:</label><select id="modalStatus" name="status"><option value="Pending">Pending</option><option value="Confirmed">Confirmed</option><option value="Cancelled">Cancelled</option><option value="Declined">Declined</option></select></div>
+                            <div class="form-group"><label for="modalStatus">Status:</label>
+                                <select id="modalStatus" name="status">
+                                    <option value="Pending">Pending</option>
+                                    <option value="Confirmed">Confirmed</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                    <option value="Declined">Declined</option>
+                                </select>
+                            </div>
 
                             <div class="form-group"><label for="modalCreatedAt">Booked At:</label><input type="text" id="modalCreatedAt" name="created_at" readonly></div>
-                             
-                            <div class="form-group">
-                                <label for="modalActionBy">Last Action By:</label>
-                                <input type="text" id="modalActionBy" name="action_by" readonly style="background-color: #e9ecef; cursor: not-allowed;">
-                            </div>
+                            <div class="form-group"><label for="modalActionBy">Last Action By:</label><input type="text" id="modalActionBy" name="action_by" readonly></div>
                             
                             <div class="form-group full-width">
-                                <label for="modalSpecialRequests">Special Requests:</label>
-                                <textarea id="modalSpecialRequests" name="special_requests" rows="3" placeholder="Customer comments or requests..."></textarea>
+                                <label for="modalSpecialRequests">Special Requests / Comments:</label>
+                                <textarea id="modalSpecialRequests" name="special_requests" placeholder="Customer comments or requests..."></textarea>
                             </div>
-                            <div class="form-group full-width"> 
-                                <label>Uploaded ID:</label>
-                                <div id="validIdDisplay">
-                                   
-                                </div>
+                            <div class="form-group full-width" id="validIdGroup"> 
+                                <label>Uploaded ID (If applicable):</label>
+                                <div id="validIdDisplay" style="background: #f8f9fa; padding: 10px; border-radius: 6px; text-align: center;">
+                                   </div>
                             </div>
                         </form>
                     </div>
                     <div class="modal-actions">
-                        <button type="submit" class="btn modal-save-btn" form="editReservationForm">Save Changes</button>
-                        
-                        <button type="button" class="btn modal-delete-btn" style="background-color: #dc3545; color: white;">Delete</button>
+                        <button type="button" class="btn delete-btn modal-delete-btn" style="margin-right: auto;"><i class="material-icons">delete</i> Delete</button>
+                        <button type="button" class="btn" style="background-color: #f1f5f9; color: #475569;" onclick="document.getElementById('reservationModal').style.display='none'">Cancel</button>
+                        <button type="submit" class="btn btn-primary modal-save-btn" form="editReservationForm"><i class="material-icons" style="font-size: 18px; margin-right: 5px;">save</i> Save</button>
                     </div>
                 </div>
             </div>
@@ -301,14 +480,21 @@ mysqli_close($link);
             <div id="addReservationModal" class="modal">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2>Add New Walk-in Reservation</h2>
-                        <span class="close-button">&times;</span>
+                        <h2>Add Walk-in Reservation</h2>
+                        <button class="close-button">&times;</button>
                     </div>
                     <div class="modal-body">
                         <form id="addReservationForm">
+                            <div class="form-group full-width" style="border-bottom: 2px solid #f1f3f5; padding-bottom: 10px; margin-bottom: 10px;">
+                                <h3 style="margin:0; font-size: 16px; color: #0284c7;">Customer Details</h3>
+                            </div>
                             <div class="form-group"><label for="addResName">Customer Name:</label><input type="text" id="addResName" name="res_name" required></div>
-                            <div class="form-group"><label for="addResEmail">Email:</label><input type="email" id="addResEmail" name="res_email" required></div>
-                            <div class="form-group"><label for="addResPhone">Phone:</label><input type="tel" id="addResPhone" name="res_phone" required></div>
+                            <div class="form-group"><label for="addResEmail">Email Address:</label><input type="email" id="addResEmail" name="res_email" required></div>
+                            <div class="form-group full-width"><label for="addResPhone">Phone Number:</label><input type="tel" id="addResPhone" name="res_phone" required></div>
+                            
+                            <div class="form-group full-width" style="border-bottom: 2px solid #f1f3f5; padding-bottom: 10px; margin-top: 10px; margin-bottom: 10px;">
+                                <h3 style="margin:0; font-size: 16px; color: #0284c7;">Booking Info</h3>
+                            </div>
                             <div class="form-group"><label for="addResDate">Date:</label><input type="date" id="addResDate" name="res_date" required></div>
                             <div class="form-group"><label for="addResTime">Time:</label><input type="time" id="addResTime" name="res_time" required></div>
                             <div class="form-group"><label for="addNumGuests">Number of Guests:</label><input type="number" id="addNumGuests" name="num_guests" min="1" required></div>
@@ -321,48 +507,54 @@ mysqli_close($link);
                                 </select>
                             </div>
                             <div class="form-group full-width">
-                                <label for="addSpecialRequests">Special Requests (Optional):</label>
-                                <textarea id="addSpecialRequests" name="special_requests" rows="3" placeholder="e.g., allergies, high chair, etc..."></textarea>
+                                <label for="addSpecialRequests">Special Requests / Notes (Optional):</label>
+                                <textarea id="addSpecialRequests" name="special_requests" placeholder="e.g., high chair, window seat..."></textarea>
                             </div>
-                            </form>
+                        </form>
                     </div>
                     <div class="modal-actions">
-                        <button type="submit" class="btn modal-save-btn" form="addReservationForm">Add Reservation</button>
+                        <button type="button" class="btn" style="background-color: #f1f5f9; color: #475569;" onclick="document.getElementById('addReservationModal').style.display='none'">Cancel</button>
+                        <button type="submit" class="btn btn-primary modal-save-btn" form="addReservationForm"><i class="material-icons">add_circle</i> Add</button>
                     </div>
                 </div>
             </div>
 
             <div id="confirmDeleteModal" class="modal">
-                <div class="modal-content" style="max-width: 500px;">
-                    <div class="modal-header">
-                        <h2 id="modal-title-h2">Confirm Deletion</h2>
-                        <span class="close-button">&times;</span>
+                <div class="modal-content" style="max-width: 420px; text-align: center;">
+                    <div class="modal-header" style="border:none; justify-content: flex-end; padding-bottom: 0;">
+                        <button class="close-button">&times;</button>
                     </div>
-                    <div class="modal-body">
-                        <p>Are you sure you want to move this reservation to the deletion history? It can be restored within 30 days.</p>
+                    <div class="modal-body" style="padding-top: 0;">
+                        <i class="material-icons" style="font-size: 60px; color: #f5b301; margin-bottom: 15px;">help_outline</i>
+                        <h2 id="modal-title-h2" style="margin-bottom: 10px;">Confirm Deletion</h2>
+                        <p style="color: #666;">Move this reservation to the deletion history? It can be restored within 30 days.</p>
                     </div>
-                    <div class="modal-actions">
-                        <button type="button" class="btn" id="cancelDeleteBtn" style="background-color: #6c757d; color: white;">Cancel</button>
+                    <div class="modal-actions" style="justify-content: center; background: #fff; border-top:none;">
+                        <button type="button" class="btn" id="cancelDeleteBtn" style="background-color: #f1f5f9; color: #475569;">Cancel</button>
                         <button type="button" class="btn delete-btn" id="confirmDeleteBtn">Yes, Delete</button>
                     </div>
                 </div>
             </div>
 
             <div id="notificationModal" class="modal">
-                <div class="modal-content" style="max-width: 450px; text-align: center;">
-                    <span class="close-button">&times;</span>
-                    <div id="modalHeaderIcon" class="modal-header-icon"></div>
-                    <h2 id="modalTitle"></h2>
-                    <p id="modalMessage"></p>
-                    <div class="modal-actions" style="justify-content: center;">
-                        <button class="btn modal-close-btn" style="background-color: #007bff; color: white;">OK</button>
+                <div class="modal-content" style="max-width: 400px; text-align: center;">
+                    <div class="modal-header" style="border:none; justify-content: flex-end; padding-bottom: 0;">
+                        <button class="close-button">&times;</button>
+                    </div>
+                    <div class="modal-body" style="padding-top: 0;">
+                        <div id="modalHeaderIcon" class="modal-header-icon" style="margin-bottom: 15px;"></div>
+                        <h2 id="modalTitle" style="margin-bottom: 12px; font-size: 22px; color: #333;"></h2>
+                        <p id="modalMessage" style="color: #666;"></p>
+                    </div>
+                    <div class="modal-actions" style="justify-content: center; background: #fff; border-top:none;">
+                        <button class="btn btn-primary modal-close-btn" style="padding: 10px 30px; border-radius: 20px;">OK</button>
                     </div>
                 </div>
             </div>
 
-            <div id="imageIdModal" class="modal" style="background-color: rgba(0, 0, 0, 0.85); z-index: 2001;">
-                <span class="close-button close-image-modal" style="color: #f1f1f1; font-size: 40px; top: 20px; right: 35px; z-index: 2002;">&times;</span>
-                <img class="modal-content image-modal-content" id="modalImageContent" style="max-width: 85%; max-height: 85vh; padding: 0; border-radius: 5px;">
+            <div id="imageIdModal" class="modal" style="background-color: rgba(0, 0, 0, 0.9); z-index: 3000;">
+                <button class="close-button close-image-modal" style="color: #fff; font-size: 40px; position: absolute; top: 20px; right: 35px; background: none; border: none; cursor: pointer;">&times;</button>
+                <img class="modal-content image-modal-content" id="modalImageContent" style="max-width: 90%; max-height: 85vh; padding: 0; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: none;">
             </div>
 
         </div>
@@ -370,11 +562,8 @@ mysqli_close($link);
 
     <script src="JS/reservation.js"></script>
     <script>
-    // NEW MODIFIED Notification script (with profile dropdown logic)
     document.addEventListener('DOMContentLoaded', () => {
         
-        // --- MODIFICATION START: Copied from JS/reservation.js ---
-        // This makes the showNotification function available in this script's scope
         const notificationModal = document.getElementById('notificationModal');
         const modalHeaderIcon = document.getElementById('modalHeaderIcon');
         const modalTitle = document.getElementById('modalTitle');
@@ -385,16 +574,15 @@ mysqli_close($link);
 
         function showNotification(type, title, message, callback = null) {
             if (!notificationModal || !modalHeaderIcon || !modalTitle || !modalMessage) {
-                 alert(`${title}: ${message}`); // Fallback
+                 alert(`${title}: ${message}`); 
                 if (callback) callback();
                 return;
             }
 
-            modalHeaderIcon.innerHTML = type === 'success' ? '<i class="material-icons">check_circle</i>' : '<i class="material-icons">error</i>';
-            modalHeaderIcon.className = 'modal-header-icon ' + type; // Set class for color styling
+            modalHeaderIcon.innerHTML = type === 'success' ? '<i class="material-icons" style="font-size: 60px; color: #28a745;">check_circle_outline</i>' : '<i class="material-icons" style="font-size: 60px; color: #dc3545;">error_outline</i>';
             modalTitle.textContent = title;
             modalMessage.textContent = message;
-            notificationCallback = callback; // Store the callback
+            notificationCallback = callback; 
             notificationModal.style.display = 'flex';
         }
         
@@ -402,13 +590,12 @@ mysqli_close($link);
             if (!notificationModal) return;
             notificationModal.style.display = 'none';
             if (notificationCallback) {
-                notificationCallback(); // Execute the callback after closing
-                notificationCallback = null; // Clear the callback
+                notificationCallback(); 
+                notificationCallback = null; 
             }
         }
         if (notificationCloseButton) notificationCloseButton.addEventListener('click', closeNotificationModal);
         if (notificationOkButton) notificationOkButton.addEventListener('click', closeNotificationModal);
-        // --- MODIFICATION END ---
         
         
         const messageBtn = document.getElementById('adminMessageBtn');
@@ -419,17 +606,15 @@ mysqli_close($link);
         const messageCountBadge = document.getElementById('adminMessageCount');
         const reservationCountBadge = document.getElementById('adminReservationCount');
         
-        // NEW: Profile Dropdown elements
         const adminProfileBtn = document.getElementById('adminProfileBtn');
         const adminProfileDropdown = document.getElementById('adminProfileDropdown');
 
         async function fetchAdminNotifications() {
             try {
-                const response = await fetch('/get_admin_notifications'); // <-- FIXED
+                const response = await fetch('/get_admin_notifications'); 
                 const data = await response.json();
 
                 if (data.success) {
-                    // Update Message Count and Dropdown
                     if (data.new_messages > 0) {
                         messageCountBadge.textContent = data.new_messages;
                         messageCountBadge.style.display = 'block';
@@ -438,7 +623,6 @@ mysqli_close($link);
                     }
                     messageDropdown.innerHTML = data.messages_html;
 
-                    // Update Reservation Count and Dropdown
                     if (data.pending_reservations > 0) {
                         reservationCountBadge.textContent = data.pending_reservations;
                         reservationCountBadge.style.display = 'block';
@@ -452,12 +636,11 @@ mysqli_close($link);
             }
         }
 
-        // Toggle dropdowns
         if(messageBtn) {
             messageBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if(reservationDropdown) reservationDropdown.classList.remove('show');
-                if(adminProfileDropdown) adminProfileDropdown.classList.remove('show'); // Close profile
+                if(adminProfileDropdown) adminProfileDropdown.classList.remove('show'); 
                 if(messageDropdown) messageDropdown.classList.toggle('show');
             });
         }
@@ -466,12 +649,11 @@ mysqli_close($link);
             reservationBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if(messageDropdown) messageDropdown.classList.remove('show');
-                if(adminProfileDropdown) adminProfileDropdown.classList.remove('show'); // Close profile
+                if(adminProfileDropdown) adminProfileDropdown.classList.remove('show'); 
                 if(reservationDropdown) reservationDropdown.classList.toggle('show');
             });
         }
         
-        // NEW: Toggle Profile Dropdown
         if (adminProfileBtn) {
             adminProfileBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -481,18 +663,15 @@ mysqli_close($link);
             });
         }
 
-        // Close dropdowns when clicking outside
         window.addEventListener('click', () => {
             if(messageDropdown) messageDropdown.classList.remove('show');
             if(reservationDropdown) reservationDropdown.classList.remove('show');
-            if(adminProfileDropdown) adminProfileDropdown.classList.remove('show'); // Close profile
+            if(adminProfileDropdown) adminProfileDropdown.classList.remove('show'); 
         });
 
-        // Prevent dropdown from closing when clicking inside link area
         [messageDropdown, reservationDropdown, adminProfileDropdown].forEach(dropdown => {
            if(dropdown) {
                 dropdown.addEventListener('click', (e) => {
-                    // Only stop propagation if it's NOT the dismiss button
                     if (!e.target.classList.contains('admin-notification-dismiss')) {
                         e.stopPropagation();
                     }
@@ -500,12 +679,11 @@ mysqli_close($link);
            }
         });
 
-        // --- Handle Dismiss Click ---
         async function handleDismiss(e) {
             if (!e.target.classList.contains('admin-notification-dismiss')) return;
 
-            e.preventDefault(); // Prevent default button action
-            e.stopPropagation(); // Stop event from bubbling up and closing dropdown
+            e.preventDefault(); 
+            e.stopPropagation(); 
 
             const button = e.target;
             const id = button.dataset.id;
@@ -517,27 +695,22 @@ mysqli_close($link);
             formData.append('type', type);
 
             try {
-                const response = await fetch('/clear_admin_notification', { method: 'POST', body: formData }); // <-- FIXED
+                const response = await fetch('/clear_admin_notification', { method: 'POST', body: formData }); 
                 const result = await response.json();
 
                 if (result.success) {
-                    // Visually remove the item
                     itemWrapper.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
                     itemWrapper.style.opacity = '0';
                     itemWrapper.style.transform = 'translateX(-20px)';
                     setTimeout(() => {
                         itemWrapper.remove();
-                        // Refetch to update counts and check if dropdown should be empty
                         fetchAdminNotifications();
                     }, 300);
                 } else {
-                    // --- THIS IS THE FIX ---
-                    // Now it uses the showNotification function defined above
                     showNotification('error', 'Action Failed', result.message);
                 }
             } catch (error) {
                 console.error('Error dismissing notification:', error);
-                // --- THIS IS THE FIX ---
                 showNotification('error', 'Error', 'An error occurred. Please try again.');
             }
         }
@@ -545,9 +718,8 @@ mysqli_close($link);
        if(messageDropdown) messageDropdown.addEventListener('click', handleDismiss);
        if(reservationDropdown) reservationDropdown.addEventListener('click', handleDismiss);
 
-        // Initial fetch and polling
         fetchAdminNotifications();
-        setInterval(fetchAdminNotifications, 30000); // Check for new notifications every 30 seconds
+        setInterval(fetchAdminNotifications, 30000); 
     });
     </script>
 </body>
