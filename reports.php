@@ -2,6 +2,7 @@
 session_start();
 require_once 'db_connect.php';
 
+// Check if the user is logged in AND is an admin
 if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true || !$_SESSION['is_admin']) {
     header('Location: login.php');
     exit;
@@ -116,45 +117,158 @@ mysqli_close($link);
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        .report-filters { background-color: #fff; padding: 15px 20px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); margin-bottom: 30px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
-        .filter-group { display: flex; flex-direction: column; }
-        .filter-group label { font-size: 14px; color: #555; margin-bottom: 5px; }
-        .filter-group input { padding: 8px 12px; border-radius: 5px; border: 1px solid #ccc; }
-        .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-        .report-section { background-color: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); }
-        .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;}
-        .report-header h3 { margin: 0; font-size: 18px; }
-        .export-options button { margin-left: 10px; }
-        .chart-container { padding-top: 10px; }
-        @media (max-width: 992px) { .report-grid { grid-template-columns: 1fr; } }
+        /* --- ENHANCED & RESPONSIVE UI STYLING --- */
+
+        .filter-card {
+            background-color: #fff;
+            padding: 20px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid #eaedf1;
+            margin-bottom: 25px;
+        }
+
+        .filter-card h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+        }
+
+        .filter-form {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .form-group { display: flex; flex-direction: column; flex: 1; min-width: 200px; }
+        .form-group label { font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; }
+        .form-group input[type="date"] {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #fdfdfd;
+        }
+        .form-group input[type="date"]:focus {
+            border-color: #0ea5e9;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+            background-color: #fff;
+        }
+
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 10px 18px; font-size: 14px; font-weight: 500;
+            border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; gap: 6px;
+        }
+        .btn-primary { background-color: #0ea5e9; color: white; box-shadow: 0 4px 6px rgba(14, 165, 233, 0.2); height: 40px; }
+        .btn-primary:hover { background-color: #0284c7; transform: translateY(-1px); }
+
+        .btn-small { padding: 6px 12px; font-size: 13px; }
+        .btn-small i { font-size: 16px; }
+        
+        .export-csv { background-color: #e0f2fe; color: #0284c7; }
+        .export-csv:hover { background-color: #bae6fd; }
+        .print-chart { background-color: #f1f5f9; color: #475569; }
+        .print-chart:hover { background-color: #e2e8f0; color: #1e293b; }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+            align-items: stretch;
+        }
+
+        .report-section {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid #eaedf1;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 25px;
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .report-header h3 {
+            margin: 0;
+            font-size: 17px;
+            color: #1e293b;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .export-options { display: flex; gap: 8px; }
+        .chart-container { position: relative; flex-grow: 1; min-height: 300px; width: 100%; }
+
+        /* --- RESPONSIVE MEDIA QUERIES --- */
+        @media (max-width: 992px) {
+            .report-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 576px) {
+            .filter-form { flex-direction: column; align-items: stretch; }
+            .btn-primary { width: 100%; }
+            .report-header { flex-direction: column; align-items: flex-start; }
+            .export-options { width: 100%; }
+            .export-options .btn { flex: 1; }
+        }
     </style>
 </head>
 <body>
 
 <div class="page-wrapper">
-    <aside class="admin-sidebar">
-        <div class="sidebar-header"><img src="Tavern.png" alt="Home Icon" class="home-icon"></div>
-        <nav>
-            <ul class="sidebar-menu">
-                    <li class="menu-item"><a href="admin.php"><i class="material-icons">dashboard</i> Dashboard</a></li>
-                    <li class="menu-item"><a href="reservation.php"><i class="material-icons">event_note</i> Reservation</a></li>
-                    <li class="menu-item"><a href="update.php"><i class="material-icons">file_upload</i> Upload Management</a></li>
-                </ul>
-                <div class="user-management-title">User Management</div>
-                <ul class="sidebar-menu user-management-menu">
-                    <li class="menu-item"><a href="customer_database.php"><i class="material-icons">people</i> Customer Database</a></li>
-                    <li class="menu-item"><a href="notification_control.php"><i class="material-icons">notifications</i> Notification Control</a></li>
-                    <li class="menu-item"><a href="table_management.php"><i class="material-icons">table_chart</i> Calendar Management</a></li>
-                    <li class="menu-item active"><a href="reports.php"><i class="material-icons">analytics</i>Reservation Reports</a></li>
-                    <li class="menu-item"><a href="deletion_history.php"><i class="material-icons">history</i> Archive</a></li>
-                </ul>
-        </nav>
-    </aside>
+    <?php
+    if (isset($_SESSION['role']) && $_SESSION['role'] === 'manager') {
+        include 'partials/manager_sidebar.php';
+    } else {
+    ?>
+        <aside class="admin-sidebar">
+            <div class="sidebar-header"><img src="Tavern.png" alt="Home Icon" class="home-icon"></div>
+            <nav>
+                <ul class="sidebar-menu">
+                        <li class="menu-item"><a href="admin.php"><i class="material-icons">dashboard</i> Dashboard</a></li>
+                        <li class="menu-item"><a href="reservation.php"><i class="material-icons">event_note</i> Reservation</a></li>
+                        <li class="menu-item"><a href="update.php"><i class="material-icons">file_upload</i> Upload Management</a></li>
+                    </ul>
+                    <div class="user-management-title">User Management</div>
+                    <ul class="sidebar-menu user-management-menu">
+                        <li class="menu-item"><a href="customer_database.php"><i class="material-icons">people</i> Customer Database</a></li>
+                        <li class="menu-item"><a href="notification_control.php"><i class="material-icons">notifications</i> Notification Control</a></li>
+                        <li class="menu-item"><a href="table_management.php"><i class="material-icons">table_chart</i> Calendar Management</a></li>
+                        <li class="menu-item active"><a href="reports.php"><i class="material-icons">analytics</i>Reservation Reports</a></li>
+                        <li class="menu-item"><a href="deletion_history.php"><i class="material-icons">history</i> Archive</a></li>
+                    </ul>
+            </nav>
+        </aside>
+    <?php } ?>
 
     <div class="admin-content-area">
             <header class="main-header">
                 <div class="header-content">
-                    <h1 class="header-page-title">Reservation Reports</h1>
+                    <h1 class="header-page-title">Analytics & Reports</h1>
                     
                     <div class="admin-header-right">
     
@@ -200,27 +314,27 @@ mysqli_close($link);
 
         <main class="dashboard-main-content">
 
-            <div class="report-filters">
-                <form method="GET" action="reports.php" style="display: flex; gap: 20px; align-items: center; width: 100%; flex-wrap: wrap;">
-                    <h4>Filter Reports by Date</h4>
-                    <div class="filter-group">
+            <div class="filter-card">
+                <h3><i class="material-icons" style="color: #0ea5e9;">date_range</i> Filter Reports by Date Range</h3>
+                <form method="GET" action="reports.php" class="filter-form">
+                    <div class="form-group">
                         <label for="startDate">Start Date</label>
                         <input type="date" id="startDate" name="startDate" value="<?= htmlspecialchars($startDate) ?>">
                     </div>
-                    <div class="filter-group">
+                    <div class="form-group">
                         <label for="endDate">End Date</label>
                         <input type="date" id="endDate" name="endDate" value="<?= htmlspecialchars($endDate) ?>">
                     </div>
-                    <button type="submit" class="btn view-btn" style="align-self: flex-end;">Apply Filter</button>
+                    <button type="submit" class="btn btn-primary"><i class="material-icons">filter_list</i> Apply Filter</button>
                 </form>
             </div>
 
             <section class="report-section">
                 <div class="report-header">
-                    <h3>Pacing Report (This Year vs. Last Year)</h3>
+                    <h3><i class="material-icons" style="color: #10b981;">trending_up</i> Pacing Report (This Year vs. Last Year)</h3>
                     <div class="export-options">
-                        <button class="btn btn-small export-csv" data-target="pacingChart">Export CSV</button>
-                        <button class="btn btn-small print-chart" data-target="pacingChart">Print</button>
+                        <button class="btn btn-small export-csv" data-target="pacingChart"><i class="material-icons">download</i> CSV</button>
+                        <button class="btn btn-small print-chart" data-target="pacingChart"><i class="material-icons">print</i> Print</button>
                     </div>
                 </div>
                 <div class="chart-container">
@@ -228,13 +342,13 @@ mysqli_close($link);
                 </div>
             </section>
 
-            <div class="report-grid" style="margin-top: 20px;">
-                <section class="report-section">
+            <div class="report-grid">
+                <section class="report-section" style="margin-bottom: 0;">
                     <div class="report-header">
-                        <h3>Source of Business</h3>
+                        <h3><i class="material-icons" style="color: #f59e0b;">pie_chart</i> Source of Business</h3>
                         <div class="export-options">
-                            <button class="btn btn-small export-csv" data-target="sourceChart">Export CSV</button>
-                            <button class="btn btn-small print-chart" data-target="sourceChart">Print</button>
+                            <button class="btn btn-small export-csv" data-target="sourceChart"><i class="material-icons">download</i> CSV</button>
+                            <button class="btn btn-small print-chart" data-target="sourceChart"><i class="material-icons">print</i> Print</button>
                         </div>
                     </div>
                     <div class="chart-container">
@@ -242,12 +356,12 @@ mysqli_close($link);
                     </div>
                 </section>
                 
-                <section class="report-section">
+                <section class="report-section" style="margin-bottom: 0;">
                     <div class="report-header">
-                        <h3>Guest Demographics (New vs. Returning)</h3>
+                        <h3><i class="material-icons" style="color: #8b5cf6;">groups</i> Guest Retention</h3>
                         <div class="export-options">
-                            <button class="btn btn-small export-csv" data-target="demographicsChart">Export CSV</button>
-                            <button class="btn btn-small print-chart" data-target="demographicsChart">Print</button>
+                            <button class="btn btn-small export-csv" data-target="demographicsChart"><i class="material-icons">download</i> CSV</button>
+                            <button class="btn btn-small print-chart" data-target="demographicsChart"><i class="material-icons">print</i> Print</button>
                         </div>
                     </div>
                     <div class="chart-container">
@@ -279,7 +393,6 @@ mysqli_close($link);
 </script>
 <script src="JS/reports.js"></script>
 <script>
-    // NEW MODIFIED Notification script (with profile dropdown logic)
     document.addEventListener('DOMContentLoaded', () => {
         const messageBtn = document.getElementById('adminMessageBtn');
         const reservationBtn = document.getElementById('adminReservationBtn');
@@ -289,17 +402,15 @@ mysqli_close($link);
         const messageCountBadge = document.getElementById('adminMessageCount');
         const reservationCountBadge = document.getElementById('adminReservationCount');
 
-        // NEW: Profile Dropdown elements
         const adminProfileBtn = document.getElementById('adminProfileBtn');
         const adminProfileDropdown = document.getElementById('adminProfileDropdown');
 
         async function fetchAdminNotifications() {
             try {
-                const response = await fetch('get_admin_notifications.php');
+                const response = await fetch('/get_admin_notifications');
                 const data = await response.json();
 
                 if (data.success) {
-                    // Update Message Count and Dropdown
                     if (data.new_messages > 0) {
                         messageCountBadge.textContent = data.new_messages;
                         messageCountBadge.style.display = 'block';
@@ -308,7 +419,6 @@ mysqli_close($link);
                     }
                     messageDropdown.innerHTML = data.messages_html;
 
-                    // Update Reservation Count and Dropdown
                     if (data.pending_reservations > 0) {
                         reservationCountBadge.textContent = data.pending_reservations;
                         reservationCountBadge.style.display = 'block';
@@ -322,12 +432,11 @@ mysqli_close($link);
             }
         }
 
-        // Toggle dropdowns
         if (messageBtn) {
             messageBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (reservationDropdown) reservationDropdown.classList.remove('show');
-                if (adminProfileDropdown) adminProfileDropdown.classList.remove('show'); // Close profile
+                if (adminProfileDropdown) adminProfileDropdown.classList.remove('show');
                 if (messageDropdown) messageDropdown.classList.toggle('show');
             });
         }
@@ -336,12 +445,11 @@ mysqli_close($link);
             reservationBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (messageDropdown) messageDropdown.classList.remove('show');
-                if (adminProfileDropdown) adminProfileDropdown.classList.remove('show'); // Close profile
+                if (adminProfileDropdown) adminProfileDropdown.classList.remove('show');
                 if (reservationDropdown) reservationDropdown.classList.toggle('show');
             });
         }
 
-        // NEW: Toggle Profile Dropdown
         if (adminProfileBtn) {
             adminProfileBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -351,19 +459,15 @@ mysqli_close($link);
             });
         }
 
-
-        // Close dropdowns when clicking outside
         window.addEventListener('click', () => {
             if (messageDropdown) messageDropdown.classList.remove('show');
             if (reservationDropdown) reservationDropdown.classList.remove('show');
-            if (adminProfileDropdown) adminProfileDropdown.classList.remove('show'); // Close profile
+            if (adminProfileDropdown) adminProfileDropdown.classList.remove('show'); 
         });
         
-        // Prevent dropdown from closing when clicking inside link area
         [messageDropdown, reservationDropdown, adminProfileDropdown].forEach(dropdown => {
             if (dropdown) {
                 dropdown.addEventListener('click', (e) => {
-                    // Only stop propagation if it's NOT the dismiss button
                     if (!e.target.classList.contains('admin-notification-dismiss')) {
                         e.stopPropagation();
                     }
@@ -371,12 +475,11 @@ mysqli_close($link);
             }
         });
 
-        // --- Handle Dismiss Click ---
         async function handleDismiss(e) {
             if (!e.target.classList.contains('admin-notification-dismiss')) return;
 
-            e.preventDefault(); // Prevent default button action
-            e.stopPropagation(); // Stop event from bubbling up and closing dropdown
+            e.preventDefault(); 
+            e.stopPropagation(); 
 
             const button = e.target;
             const id = button.dataset.id;
@@ -388,21 +491,19 @@ mysqli_close($link);
             formData.append('type', type);
 
             try {
-                const response = await fetch('clear_admin_notification.php', { method: 'POST', body: formData });
+                const response = await fetch('/clear_admin_notification', { method: 'POST', body: formData });
                 const result = await response.json();
 
                 if (result.success) {
-                    // Visually remove the item
                     itemWrapper.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
                     itemWrapper.style.opacity = '0';
                     itemWrapper.style.transform = 'translateX(-20px)';
                     setTimeout(() => {
                         itemWrapper.remove();
-                        // Refetch to update counts and check if dropdown should be empty
                         fetchAdminNotifications(); 
                     }, 300);
                 } else {
-                    alert(result.message); // Show alert for actions that can't be dismissed
+                    alert(result.message); 
                 }
             } catch (error) {
                 console.error('Error dismissing notification:', error);
@@ -413,10 +514,9 @@ mysqli_close($link);
         if (messageDropdown) messageDropdown.addEventListener('click', handleDismiss);
         if (reservationDropdown) reservationDropdown.addEventListener('click', handleDismiss);
 
-        // Initial fetch and polling
         fetchAdminNotifications();
-        setInterval(fetchAdminNotifications, 30000); // Check for new notifications every 30 seconds
+        setInterval(fetchAdminNotifications, 30000); 
     });
-    </script>
+</script>
 </body>
 </html>
